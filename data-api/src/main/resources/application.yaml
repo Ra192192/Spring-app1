@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: data-api
+
+server:
+  port: 8081
+
+internal:
+  token: ${INTERNAL_TOKEN:dev-internal-token}
