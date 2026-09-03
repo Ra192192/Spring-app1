@@ -9,6 +9,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.springapp1.data_api.security.InternalTokenFilter;
+import org.springframework.context.annotation.Import;
+
+@Import(InternalTokenFilter.class)
 @WebMvcTest(
         controllers = TransformController.class,
         properties = "internal.token=test-secret"
@@ -59,6 +63,23 @@ class TransformControllerTest {
                         .content("""
                                 {"text":"   "}
                                 """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rejectsMalformedJsonWithoutToken() throws Exception {
+        mockMvc.perform(post("/api/transform")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{broken-json"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void rejectsMalformedJsonWithValidToken() throws Exception {
+        mockMvc.perform(post("/api/transform")
+                        .header("X-Internal-Token", "test-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{broken-json"))
                 .andExpect(status().isBadRequest());
     }
 }
